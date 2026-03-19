@@ -8,7 +8,6 @@ DATA_PATH = ./data
 
 all: up
 
-# Crear directorios si no existen
 init_dirs:
 	@echo "Creating data directories if not exist..."
 	mkdir -p $(DATA_PATH)/mariadb
@@ -23,18 +22,14 @@ down:
 build:
 	$(COMPOSE) build
 
-start:
-	$(COMPOSE) start
+start: init_dirs
+	$(COMPOSE) up -d --build
 
 stop:
 	$(COMPOSE) stop
 
-# Limpia contenedores + volúmenes
-clean:
+fclean:
 	$(COMPOSE) down -v --remove-orphans
-
-# Limpieza TOTAL
-fclean: clean
 	@echo "Removing images..."
 	-docker rmi -f mariadb:1.0 nginx:1.0 wordpress:1.0
 

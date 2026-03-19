@@ -6,19 +6,29 @@ DB_PASSWORD=$(cat /run/secrets/db_password)
 WP_ADMIN_PASSWORD=$(cat /run/secrets/wp_admin_password)
 WP_USER_PASSWORD=$(cat /run/secrets/wp_user_password)
 
-sleep 10
+echo "Waiting for MariaDB to be ready..."
+until mysqladmin ping -h mariadb -u "${MYSQL_USER}" -p"${DB_PASSWORD}" --silent; do
+    echo "MariaDB is not ready yet. Waiting..."
+    sleep 2
+done
+echo "MariaDB is ready!"
 
 cd /var/www/html
 
 if [ ! -f wp-config.php ]; then
 
-    cp wp-config-sample.php wp-config.php
-
-    sed -i "s/database_name_here/${MYSQL_DATABASE}/" wp-config.php
-    sed -i "s/username_here/${MYSQL_USER}/" wp-config.php
-    sed -i "s/password_here/${DB_PASSWORD}/" wp-config.php
-
-    sed -i "s/localhost/mariadb/" wp-config.php
+    echo "Creating wp-config.php..."
+    
+    # Usamos wp-cli para crear el archivo de configuración de forma segura
+    wp config create \
+        --dbname="${MYSQL_DATABASE}" \
+        --dbuser="${MYSQL_USER}" \
+        --dbpass="${DB_PASSWORD}" \
+        --dbhost="mariadb" \
+        --allow-root \
+        --path=/var/www/html
+    
+    echo "wp-config.php created."
 fi
 
 if ! wp core is-installed --allow-root --path=/var/www/html; then
