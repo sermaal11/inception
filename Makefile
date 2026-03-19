@@ -46,6 +46,9 @@ fclean:
 	mkdir -p $(DATA_PATH)/mariadb
 	mkdir -p $(DATA_PATH)/wordpress
 
+	@echo "Pruning system..."
+	docker system prune -a --volumes -f
+
 re: fclean up
 
 .PHONY: all up down build start stop clean fclean re init_dirs
